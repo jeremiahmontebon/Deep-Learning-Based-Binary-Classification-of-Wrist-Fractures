@@ -1,0 +1,15 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+keras = "==2.15.0"
+tensorflow = "==2.15.0"
+opencv-python = "==4.8.0.76"
+scikit-image = "==0.19.3"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
