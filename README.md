@@ -9,6 +9,24 @@ The primary objective of this research is to investigate the effectiveness of de
 ### Scope and Dataset
 This study specifically targets external wrist fractures, excluding internal fractures, to maintain research manageability and focus. The dataset utilized for training and evaluation comprises wrist fracture images, ensuring a consistent approach to the classification task.
 
+## Installation
+1. Clone the repository to your local machine:
+   ```bash
+   git clone [https://github.com/your-username/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures.git](https://github.com/jeremiahmontebon/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures.git)
+2. Navigate to the project directory:
+   ```bash
+   cd Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures
+3. Install the required dependencies using pip:
+   ```bash
+   pip install -r requirements.txt
+
+## Usage
+### Local Deployment with Streamlit
+1. streamlit run app.py
+   ```bash
+   streamlit run app.py
+2. Once the app is running, you can access it in your web browser
+
 ## Research Resources
 
 ### Google Colab Notebooks
