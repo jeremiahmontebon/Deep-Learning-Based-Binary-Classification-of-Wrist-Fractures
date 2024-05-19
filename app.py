@@ -91,11 +91,11 @@ if st.button("PREDICT"):
     
     # Load the model from the HDF5 file
     if option == "InceptionV3":
-        model = load_model('models\DenseNet_model.h5')
+        model = load_model(r'models\DenseNet_model.h5')
     elif option == "Resnet-50":
-        model = load_model('models\DenseNet_model.h5')
+        model = load_model(r'models\DenseNet_model.h5')
     elif option == "Densenet-201":
-        model = load_model('models\DenseNet_model.h5')
+        model = load_model(r'models\DenseNet_model.h5')
     else:
         # No model selected
         st.warning("Please select a model.")
