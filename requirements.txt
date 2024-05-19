@@ -1,7 +1,4 @@
 keras==2.15.0
-numpy==1.26.4
-pandas==2.2.2
-Pillow==10.3.0
 tensorflow==2.15.0
 opencv-python==4.8.0.76
 scikit-image==0.19.3
