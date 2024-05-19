@@ -1,13 +1,13 @@
 # Deep Learning-Based Binary Classification of Wrist Fractures
 
 ## Introduction
-The advancement of machine learning, particularly deep learning, has significantly impacted various domains, including image analysis tasks such as segmentation, detection, and classification. In the medical field, the integration of artificial intelligence (AI) techniques holds immense potential for enhancing diagnostic processes. This repository presents research focused on utilizing deep learning for binary classification of wrist fractures, aiming to contribute to the automation and accuracy of medical diagnostics.
+The advancement of intense machine learning has significantly impacted various domains, including image analysis tasks such as segmentation, detection, and classification. Integrating artificial intelligence (AI) techniques holds immense potential for enhancing diagnostic processes in the medical field. This repository presents research focused on utilizing deep learning for the binary classification of wrist fractures, aiming to contribute to the automation and accuracy of medical diagnostics.
 
 ### Research Objective
 The primary objective of this research is to investigate the effectiveness of deep learning models in accurately identifying and classifying wrist fractures. By leveraging state-of-the-art deep learning architectures, we aim to demonstrate the feasibility of AI-driven solutions in medical image analysis.
 
 ### Scope and Dataset
-This study specifically targets external wrist fractures, excluding internal fractures, to maintain research manageability and focus. The dataset utilized for training and evaluation comprises wrist fracture images, ensuring a consistent approach to the classification task.
+This study explicitly targets external wrist fractures, excluding internal fractures, to maintain research manageability and focus. The dataset utilized for training and evaluation comprises wrist fracture images, ensuring a consistent approach to the classification task.
 
 ## Installation
 1. Clone the repository to your local machine:
@@ -44,4 +44,4 @@ This study specifically targets external wrist fractures, excluding internal fra
 - **Training Logs Folder**: [Google Drive Link](https://drive.google.com/drive/folders/1qcRtpE5mrTbftTAa-NN-TKiPYDuAqYYK?usp=drive_link)
 
 ## Conclusion
-The successful implementation of deep learning models for binary classification of wrist fractures showcases the potential of AI-driven solutions in medical diagnostics. This research contributes to the ongoing efforts to enhance diagnostic accuracy, efficiency, and ultimately, patient care within the healthcare industry.
+The successful implementation of deep learning models for the binary classification of wrist fractures showcases the potential of AI-driven solutions in medical diagnostics. This research contributes to the ongoing efforts to enhance diagnostic accuracy, efficiency, and, ultimately, patient care within the healthcare industry.
