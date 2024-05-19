@@ -12,7 +12,7 @@ This study specifically targets external wrist fractures, excluding internal fra
 ## Installation
 1. Clone the repository to your local machine:
    ```bash
-   git clone [https://github.com/your-username/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures.git](https://github.com/jeremiahmontebon/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures.git)
+   git clone https://github.com/jeremiahmontebon/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures.git
 2. Navigate to the project directory:
    ```bash
    cd Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures
