@@ -22,7 +22,7 @@ This study specifically targets external wrist fractures, excluding internal fra
 
 ## Usage
 ### Local Deployment with Streamlit
-1. streamlit run app.py
+1. After installing the requirements, run the Streamlit app using the following command:
    ```bash
    streamlit run app.py
 2. Once the app is running, you can access it in your web browser
