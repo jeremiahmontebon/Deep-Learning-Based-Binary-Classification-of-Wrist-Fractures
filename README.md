@@ -27,6 +27,11 @@ This study explicitly targets external wrist fractures, excluding internal fract
    streamlit run app.py
 2. Once the app is running, you can access it in your web browser
 
+### Deployed to Huggingface
+1. Access link:
+   ```bash
+   https://huggingface.co/spaces/Yoshinoheart/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures
+
 ## Research Resources
 
 ### Google Colab Notebooks
