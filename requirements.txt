@@ -1,2 +1,3 @@
 opencv-python-headless
 scikit-image
+tensorflow==2.15.0
