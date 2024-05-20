@@ -86,7 +86,7 @@ if st.button("PREDICT"):
         
     
     # Load the model from the HDF5 file
-    model = load_model('models\DenseNet_model.h5')
+    model = load_model(r'models\DenseNet_model.h5')
     
     # Call pre-processing functions
     time.sleep(3)
