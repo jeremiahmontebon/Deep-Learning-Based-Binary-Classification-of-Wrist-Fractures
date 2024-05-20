@@ -5,6 +5,10 @@ import time
 import cv2
 from skimage.transform import resize
 from keras.models import load_model
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
 
 # Define a function to load the model and use session state
 @st.cache_resource
@@ -14,6 +18,7 @@ def load_model_once():
         model = load_model(model_path)
         st.write("Model loaded successfully.")
     except Exception as e:
+        logging.error(f"Error loading model: {e}")
         st.write(f"Error loading model: {e}")
         model = None
     return model
@@ -105,9 +110,11 @@ if st.button("PREDICT"):
                 else:
                     st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
             except Exception as e:
+                logging.error(f"Error during prediction: {e}")
                 st.write(f"Error during prediction: {e}")
 
         except Exception as e:
+            logging.error(f"Error during preprocessing: {e}")
             st.write(f"Error during preprocessing: {e}")
 
     time.sleep(1)
