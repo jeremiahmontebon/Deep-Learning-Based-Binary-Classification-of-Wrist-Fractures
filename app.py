@@ -2,10 +2,21 @@ import streamlit as st
 from PIL import Image
 import numpy as np
 import time
-import pandas as pd
 import cv2
 from skimage.transform import resize
 from keras.models import load_model
+
+# Define a function to load the model and use session state
+@st.cache_resource
+def load_model_once():
+    model_path = r'models/DenseNet_model.h5'
+    try:
+        model = load_model(model_path)
+        st.write("Model loaded successfully.")
+    except Exception as e:
+        st.write(f"Error loading model: {e}")
+        model = None
+    return model
 
 # Histogram equalization
 def histogram_equalization(image):
@@ -19,7 +30,7 @@ def minimize_gray_noise(image):
     for i in range(modified_img.shape[0]):
         for j in range(modified_img.shape[1]):
             pixel = modified_img[i, j]
-            if (pixel < 125):
+            if pixel < gray_threshold:
                 modified_img[i, j] = 0
     return modified_img
 
@@ -64,41 +75,40 @@ if st.button("PREDICT"):
         time.sleep(0.01)
         my_bar.progress(percent_complete + 1, progress_text)
 
-    try:
-        model = load_model(r'models/DenseNet_model.h5')
-        st.write("Model loaded successfully.")
-    except Exception as e:
-        st.write(f"Error loading model: {e}")
-        model = None
+    model = load_model_once()
 
     if model is not None:
-        time.sleep(3)
-        image_equalize = histogram_equalization(image_array)
-        image_equalize = inpaint_image(image_equalize)
-        col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
-        time.sleep(3)
-        image_equalize = minimize_gray_noise(image_equalize)
-        col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
-        image_equalize = resize(image_equalize, (224, 224))
-
-        if len(image_equalize.shape) == 2:
-            image_equalize = np.stack((image_equalize,) * 3, axis=-1)
-
-        st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
-        image_data_with_batch = np.expand_dims(image_equalize, axis=0)
-        st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
-
-        image_data_with_batch = np.expand_dims(image_equalize, axis=0)
-
         try:
-            predictions = model.predict(image_data_with_batch)
-            st.write(f"Predictions: {predictions}")
-            if predictions < 0.5:
-                st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
+            time.sleep(3)
+            image_equalize = histogram_equalization(image_array)
+            image_equalize = inpaint_image(image_equalize)
+            col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
+            time.sleep(3)
+            image_equalize = minimize_gray_noise(image_equalize)
+            col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
+            image_equalize = resize(image_equalize, (224, 224))
+
+            if len(image_equalize.shape) == 2:
+                image_equalize = np.stack((image_equalize,) * 3, axis=-1)
+
+            st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
+            image_data_with_batch = np.expand_dims(image_equalize, axis=0)
+            st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
+
+            image_data_with_batch = image_data_with_batch.astype(np.float32)
+
+            try:
+                predictions = model.predict(image_data_with_batch)
+                st.write(f"Predictions: {predictions}")
+                if predictions < 0.5:
+                    st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
+                else:
+                    st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
+            except Exception as e:
+                st.write(f"Error during prediction: {e}")
+
         except Exception as e:
-            st.write(f"Error during prediction: {e}")
+            st.write(f"Error during preprocessing: {e}")
 
     time.sleep(1)
     my_bar.empty()
