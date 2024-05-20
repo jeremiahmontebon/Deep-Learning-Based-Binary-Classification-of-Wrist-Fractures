@@ -5,7 +5,6 @@ import time
 import cv2
 from skimage.transform import resize
 from keras.models import load_model
-import threading
 
 # Define a function to load the model and use session state
 @st.cache_resource
@@ -41,25 +40,6 @@ def inpaint_image(image):
     inpainted_image = cv2.inpaint(modified_img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
     return inpainted_image
 
-# Function to process and predict the image
-def process_and_predict(image_array, model, result_queue):
-    try:
-        image_equalize = histogram_equalization(image_array)
-        image_equalize = inpaint_image(image_equalize)
-        
-        image_equalize = minimize_gray_noise(image_equalize)
-        image_equalize = resize(image_equalize, (224, 224))
-        if len(image_equalize.shape) == 2:
-            image_equalize = np.stack((image_equalize,) * 3, axis=-1)
-
-        image_data_with_batch = np.expand_dims(image_equalize, axis=0)
-        image_data_with_batch = image_data_with_batch.astype(np.float32)
-
-        predictions = model.predict(image_data_with_batch)
-        result_queue.put(("success", predictions))
-    except Exception as e:
-        result_queue.put(("error", e))
-
 # Project Title
 st.title("Deep-Learning Based Binary Classification of Wrist Fracture")
 
@@ -86,26 +66,49 @@ if user_image is not None:
 
     col1.image(image_array, width=300, use_column_width=True, clamp=True, caption='ORIGINAL IMAGE')
 
+progress_text = "PREDICTING PLEASE WAIT..."
+
 if st.button("PREDICT"):
+    my_bar = st.progress(0, text=progress_text)
+
+    for percent_complete in range(100):
+        time.sleep(0.01)
+        my_bar.progress(percent_complete + 1, progress_text)
+
     model = load_model_once()
 
     if model is not None:
-        result_queue = queue.Queue()
+        try:
+            time.sleep(3)
+            image_equalize = histogram_equalization(image_array)
+            image_equalize = inpaint_image(image_equalize)
+            col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
+            time.sleep(3)
+            image_equalize = minimize_gray_noise(image_equalize)
+            col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
+            image_equalize = resize(image_equalize, (224, 224))
 
-        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model, result_queue))
-        prediction_thread.start()
+            if len(image_equalize.shape) == 2:
+                image_equalize = np.stack((image_equalize,) * 3, axis=-1)
 
-        with st.spinner("PREDICTING, PLEASE WAIT..."):
-            prediction_thread.join()
+            st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
+            image_data_with_batch = np.expand_dims(image_equalize, axis=0)
+            st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
 
-        result_status, result = result_queue.get()
+            image_data_with_batch = image_data_with_batch.astype(np.float32)
 
-        if result_status == "success":
-            predictions = result
-            st.write(f"Predictions: {predictions}")
-            if predictions < 0.5:
-                st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
-        else:
-            st.write(f"Error during prediction: {result}")
+            try:
+                predictions = model.predict(image_data_with_batch)
+                st.write(f"Predictions: {predictions}")
+                if predictions < 0.5:
+                    st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
+                else:
+                    st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
+            except Exception as e:
+                st.write(f"Error during prediction: {e}")
+
+        except Exception as e:
+            st.write(f"Error during preprocessing: {e}")
+
+    time.sleep(1)
+    my_bar.empty()
