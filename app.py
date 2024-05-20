@@ -42,16 +42,22 @@ def inpaint_image(image):
     return inpainted_image
 
 # Function to process and predict the image
-def process_and_predict(image_array, model):
+def process_and_predict(image_array, model, progress_placeholder):
     try:
+        progress_placeholder.progress(10)
+        
         image_equalize = histogram_equalization(image_array)
         image_equalize = inpaint_image(image_equalize)
         col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
-
+        
+        progress_placeholder.progress(30)
+        
         image_equalize = minimize_gray_noise(image_equalize)
         col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
+        
+        progress_placeholder.progress(50)
+        
         image_equalize = resize(image_equalize, (224, 224))
-
         if len(image_equalize.shape) == 2:
             image_equalize = np.stack((image_equalize,) * 3, axis=-1)
 
@@ -61,6 +67,8 @@ def process_and_predict(image_array, model):
 
         image_data_with_batch = image_data_with_batch.astype(np.float32)
 
+        progress_placeholder.progress(70)
+        
         try:
             predictions = model.predict(image_data_with_batch)
             st.write(f"Predictions: {predictions}")
@@ -71,8 +79,11 @@ def process_and_predict(image_array, model):
         except Exception as e:
             st.write(f"Error during prediction: {e}")
 
+        progress_placeholder.progress(100)
+
     except Exception as e:
         st.write(f"Error during preprocessing: {e}")
+        progress_placeholder.empty()
 
 # Project Title
 st.title("Deep-Learning Based Binary Classification of Wrist Fracture")
@@ -103,17 +114,11 @@ if user_image is not None:
 progress_text = "PREDICTING PLEASE WAIT..."
 
 if st.button("PREDICT"):
-    my_bar = st.progress(0, text=progress_text)
-
-    for percent_complete in range(100):
-        time.sleep(0.01)
-        my_bar.progress(percent_complete + 1, text=progress_text)
+    progress_placeholder = st.empty()
+    progress_placeholder.progress(0)
 
     model = load_model_once()
 
     if model is not None:
-        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model))
+        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model, progress_placeholder))
         prediction_thread.start()
-        prediction_thread.join()
-
-    my_bar.empty()
