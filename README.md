@@ -29,9 +29,8 @@ This study explicitly targets external wrist fractures, excluding internal fract
 
 ### Deployed to Huggingface
 1. Access link:
-   ```bash
-   https://huggingface.co/spaces/Yoshinoheart/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures
-
+   [Hugging Face Link](https://huggingface.co/spaces/Yoshinoheart/Deep-Learning-Based-Binary-Classification-of-Wrist-Fractures)
+   
 ## Research Resources
 
 ### Google Colab Notebooks
