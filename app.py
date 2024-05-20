@@ -42,48 +42,23 @@ def inpaint_image(image):
     return inpainted_image
 
 # Function to process and predict the image
-def process_and_predict(image_array, model, progress_placeholder):
+def process_and_predict(image_array, model, result_queue):
     try:
-        progress_placeholder.progress(10)
-        
         image_equalize = histogram_equalization(image_array)
         image_equalize = inpaint_image(image_equalize)
-        col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
-        
-        progress_placeholder.progress(30)
         
         image_equalize = minimize_gray_noise(image_equalize)
-        col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
-        
-        progress_placeholder.progress(50)
-        
         image_equalize = resize(image_equalize, (224, 224))
         if len(image_equalize.shape) == 2:
             image_equalize = np.stack((image_equalize,) * 3, axis=-1)
 
-        st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
         image_data_with_batch = np.expand_dims(image_equalize, axis=0)
-        st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
-
         image_data_with_batch = image_data_with_batch.astype(np.float32)
 
-        progress_placeholder.progress(70)
-        
-        try:
-            predictions = model.predict(image_data_with_batch)
-            st.write(f"Predictions: {predictions}")
-            if predictions < 0.5:
-                st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
-            else:
-                st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
-        except Exception as e:
-            st.write(f"Error during prediction: {e}")
-
-        progress_placeholder.progress(100)
-
+        predictions = model.predict(image_data_with_batch)
+        result_queue.put(("success", predictions))
     except Exception as e:
-        st.write(f"Error during preprocessing: {e}")
-        progress_placeholder.empty()
+        result_queue.put(("error", e))
 
 # Project Title
 st.title("Deep-Learning Based Binary Classification of Wrist Fracture")
@@ -111,14 +86,26 @@ if user_image is not None:
 
     col1.image(image_array, width=300, use_column_width=True, clamp=True, caption='ORIGINAL IMAGE')
 
-progress_text = "PREDICTING PLEASE WAIT..."
-
 if st.button("PREDICT"):
-    progress_placeholder = st.empty()
-    progress_placeholder.progress(0)
-
     model = load_model_once()
 
     if model is not None:
-        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model, progress_placeholder))
+        result_queue = queue.Queue()
+
+        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model, result_queue))
         prediction_thread.start()
+
+        with st.spinner("PREDICTING, PLEASE WAIT..."):
+            prediction_thread.join()
+
+        result_status, result = result_queue.get()
+
+        if result_status == "success":
+            predictions = result
+            st.write(f"Predictions: {predictions}")
+            if predictions < 0.5:
+                st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
+            else:
+                st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
+        else:
+            st.write(f"Error during prediction: {result}")
