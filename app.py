@@ -5,10 +5,7 @@ import time
 import cv2
 from skimage.transform import resize
 from keras.models import load_model
-import logging
-
-# Setup logging
-logging.basicConfig(level=logging.INFO)
+import threading
 
 # Define a function to load the model and use session state
 @st.cache_resource
@@ -18,7 +15,6 @@ def load_model_once():
         model = load_model(model_path)
         st.write("Model loaded successfully.")
     except Exception as e:
-        logging.error(f"Error loading model: {e}")
         st.write(f"Error loading model: {e}")
         model = None
     return model
@@ -44,6 +40,39 @@ def inpaint_image(image):
     _, mask = cv2.threshold(modified_img, 230, 255, cv2.THRESH_BINARY)
     inpainted_image = cv2.inpaint(modified_img, mask, inpaintRadius=3, flags=cv2.INPAINT_TELEA)
     return inpainted_image
+
+# Function to process and predict the image
+def process_and_predict(image_array, model):
+    try:
+        image_equalize = histogram_equalization(image_array)
+        image_equalize = inpaint_image(image_equalize)
+        col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
+
+        image_equalize = minimize_gray_noise(image_equalize)
+        col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
+        image_equalize = resize(image_equalize, (224, 224))
+
+        if len(image_equalize.shape) == 2:
+            image_equalize = np.stack((image_equalize,) * 3, axis=-1)
+
+        st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
+        image_data_with_batch = np.expand_dims(image_equalize, axis=0)
+        st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
+
+        image_data_with_batch = image_data_with_batch.astype(np.float32)
+
+        try:
+            predictions = model.predict(image_data_with_batch)
+            st.write(f"Predictions: {predictions}")
+            if predictions < 0.5:
+                st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
+            else:
+                st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
+        except Exception as e:
+            st.write(f"Error during prediction: {e}")
+
+    except Exception as e:
+        st.write(f"Error during preprocessing: {e}")
 
 # Project Title
 st.title("Deep-Learning Based Binary Classification of Wrist Fracture")
@@ -78,44 +107,13 @@ if st.button("PREDICT"):
 
     for percent_complete in range(100):
         time.sleep(0.01)
-        my_bar.progress(percent_complete + 1, progress_text)
+        my_bar.progress(percent_complete + 1, text=progress_text)
 
     model = load_model_once()
 
     if model is not None:
-        try:
-            time.sleep(3)
-            image_equalize = histogram_equalization(image_array)
-            image_equalize = inpaint_image(image_equalize)
-            col2.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='HISTOGRAM EQUALIZATION & INPAINT')
-            time.sleep(3)
-            image_equalize = minimize_gray_noise(image_equalize)
-            col3.image(image_equalize, width=300, use_column_width=True, clamp=True, caption='NOISE REMOVAL')
-            image_equalize = resize(image_equalize, (224, 224))
+        prediction_thread = threading.Thread(target=process_and_predict, args=(image_array, model))
+        prediction_thread.start()
+        prediction_thread.join()
 
-            if len(image_equalize.shape) == 2:
-                image_equalize = np.stack((image_equalize,) * 3, axis=-1)
-
-            st.write(f"Input image shape before adding batch dimension: {image_equalize.shape}")
-            image_data_with_batch = np.expand_dims(image_equalize, axis=0)
-            st.write(f"Input image shape after adding batch dimension: {image_data_with_batch.shape}")
-
-            image_data_with_batch = image_data_with_batch.astype(np.float32)
-
-            try:
-                predictions = model.predict(image_data_with_batch)
-                st.write(f"Predictions: {predictions}")
-                if predictions < 0.5:
-                    st.markdown("<span style='color:red; font-size:30px; font-weight: bold; background-color: white'>FRACTURED</span>", unsafe_allow_html=True)
-                else:
-                    st.markdown("<span style='color:green; font-size:30px; font-weight: bold; background-color: white'>NORMAL</span>", unsafe_allow_html=True)
-            except Exception as e:
-                logging.error(f"Error during prediction: {e}")
-                st.write(f"Error during prediction: {e}")
-
-        except Exception as e:
-            logging.error(f"Error during preprocessing: {e}")
-            st.write(f"Error during preprocessing: {e}")
-
-    time.sleep(1)
     my_bar.empty()
